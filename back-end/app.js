@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const userRoutes = require('./routes/user');
 const stuffRoutes = require('./routes/stuff');
+const path = require('path');
 
 
 const app = express();
@@ -25,6 +26,7 @@ app.use((req, res, next) => {
     next();
 });
 app.use(bodyParser.json());
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api/sauces', stuffRoutes); 
 app.use('/api/auth', userRoutes);
 // export de app et pouvoir y acceder depuis les autres fichiers js
