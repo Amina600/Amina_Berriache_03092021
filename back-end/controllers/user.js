@@ -1,13 +1,25 @@
+//bcrypt et cryptojs créent des hash pour l'email d'utilisateur et le mot de passe 
 const bcrypt = require('bcrypt');
+const cryptoJS = require("crypto-js");
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
+
+//Clé secrète pour l'email
+var key = cryptoJS.enc.Hex.parse('*`1EL2)bs;1.LC(');
+// Initialiser le vecteur
+var iv = cryptoJS.enc.Hex.parse('*`1EL2)bs;1.LC(');
+//Encrypter l'email
+const encryptEmail = (string) => {
+  const enc = cryptoJS.AES.encrypt(string, key, { iv: iv }).toString();
+  return enc;
+};
 
 exports.signup = (req, res, next) => {
     bcrypt.hash(req.body.password, 10)
       .then(hash => {
         const user = new User({
-          email: req.body.email,
+          email: encryptEmail(req.body.email),
           password: hash
         });
         user.save()
@@ -18,7 +30,7 @@ exports.signup = (req, res, next) => {
   };
 
 exports.login = (req, res, next) => {
-    User.findOne({ email: req.body.email })
+    User.findOne({email: encryptEmail(req.body.email)})
       .then(user => {
         if (!user) {
           return res.status(401).json({ error: 'Utilisateur non trouvé !' });
