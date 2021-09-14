@@ -6,9 +6,9 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 //Clé secrète pour l'email
-var key = cryptoJS.enc.Hex.parse('*`1EL2)bs;1.LC(');
+var key = cryptoJS.enc.Hex.parse(process.env.SECRET_TOKEN);
 // Initialiser le vecteur
-var iv = cryptoJS.enc.Hex.parse('*`1EL2)bs;1.LC(');
+var iv = cryptoJS.enc.Hex.parse(process.env.SECRET_TOKEN);
 //Encrypter l'email
 const encryptEmail = (string) => {
   const enc = cryptoJS.AES.encrypt(string, key, { iv: iv }).toString();
@@ -44,7 +44,7 @@ exports.login = (req, res, next) => {
               userId: user._id,
               token: jwt.sign(
                 { userId: user._id },
-                '*`1EL2)bs;1.LC(',
+                process.env.SECRET_TOKEN,
                 { expiresIn: '24h' }
               )
             });

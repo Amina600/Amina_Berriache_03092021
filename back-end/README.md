@@ -7,6 +7,7 @@ Here are the dependancies you need to install:
 
 Run `npm install` to install the other dependancies.
 
+Please fill in the requested information in `.env.example` in a new `.env` file
 
 ## Usage ##
 

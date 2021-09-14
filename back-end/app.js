@@ -1,16 +1,20 @@
+require('dotenv').config();
 //Importer express(permet d'ajouter une série de fonctions appelées middleware)
 const express = require('express');
 //Importer package body-parser pour extraire l'objet JSON.
 const bodyParser = require('body-parser');
 //Importer mangoose(qui facilite les interractions avec mongooseDB)
 const mongoose = require('mongoose');
+
 const userRoutes = require('./routes/user');
 const sauceRoutes = require('./routes/sauce');
 const path = require('path');
 
+
+
 const app = express();
 // connecter l'api avec mangooseDB
-mongoose.connect('mongodb+srv://amoza:dayfutur1@cluster0.fns7z.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
+mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_LINK}`,
   { useNewUrlParser: true,
     useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
