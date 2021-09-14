@@ -1,23 +1,14 @@
-const Sauce = require('../models/sauces');
+const Sauce = require('../models/sauce');
+// file system donne accès aux fonctions qui permettent de modifier le système de fichiers
 const fs = require('fs');
 
-
+//Enrengistrement les données de la sauce dans la basede données  
 exports.createSauce = (req, res, next) => {
   const sauceObject = JSON.parse(req.body.sauce);
   delete sauceObject._id;
   const sauce = new Sauce({
-    userId: sauceObject.userId,
-    name: sauceObject.name,
-    manufacturer: sauceObject.manufacturer,
-    description: sauceObject.description,
-    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
-    mainPepper: sauceObject.mainPepper,
-    heat: sauceObject.heat,
-    likes: 0,
-    dislikes: 0,
-    usersLiked: [],
-    usersDisliked: []
-    
+    ...sauceObject,
+    imageUrl: `${req.protocol}://${req.get("host")}/images/${req.file.filename}`,
   });
     sauce.save()
     .then(() => {
@@ -32,8 +23,7 @@ exports.createSauce = (req, res, next) => {
       }
     );
 };
-
-
+//Récup une sauce spécifique 
 exports.getOneSauce = (req, res, next) => {
     Sauce.findOne({_id: req.params.id})
     .then((sauce) => {
@@ -46,7 +36,7 @@ exports.getOneSauce = (req, res, next) => {
       }
     );
 };
-
+//Mettre à jour une sauce 
 exports.modifySauce = (req, res, next) => {
   const sauceObject = req.file ?
   {
@@ -64,10 +54,9 @@ exports.modifySauce = (req, res, next) => {
         error: error
       });
     }
-  );
-      
+  );  
 };
-
+//Suppression une sauce spécifique 
 exports.deleteSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
   .then(sauce => {
@@ -80,7 +69,7 @@ exports.deleteSauce = (req, res, next) => {
   })
   .catch(error => res.status(500).json({ error }));
 };
-
+//Récupérer toutes les sauces 
 exports.getAllSauce = (req, res, next) => {
     Sauce.find()
     .then((sauces) => {
@@ -92,13 +81,14 @@ exports.getAllSauce = (req, res, next) => {
         });
     });
 };
-
+//Like & dislike 
 exports.ctrlLikeDislike = (req, res, next) => {
   let like = req.body.like;
   let userId = req.body.userId;
 
   Sauce.findOne({_id: req.params.id})
   .then((sauce) => {
+    //Si l'user n'a pas déjà liké la sauce ou il n'a pas déjà disliker la sauce, on l'ajoute dans le tableau des usersliked
     if (like === 1 && !sauce.usersLiked.includes(userId) && !sauce.usersDisliked.includes(userId)){
       
       Sauce.updateOne( 
@@ -108,7 +98,9 @@ exports.ctrlLikeDislike = (req, res, next) => {
       .then(() => res.status(200).json({ message: "Sauce Likée !"}))
       .catch(error => res.status(400).json({ error }));
       
-    } else if(like === -1 && !sauce.usersDisliked.includes(userId) && !sauce.usersLiked.includes(userId)) {
+    } 
+    //Si l'user n'a pas déjà liké la sauce ou il n'a pas déjà disliker la sauce, on l'ajoute dans le tableau des usersdisliked
+    else if(like === -1 && !sauce.usersDisliked.includes(userId) && !sauce.usersLiked.includes(userId)) {
       Sauce.updateOne( 
         {_id: req.params.id},
         {$push: {usersDisliked: userId}, $inc: {dislikes: 1}} 
@@ -117,6 +109,7 @@ exports.ctrlLikeDislike = (req, res, next) => {
       .catch(error => res.status(400).json({ error }));
       
     } else if (like === 0) {
+      //Si l'user a un like, et il souhaite retirer son like, on l'enlève du tableau userlsiked
       if(sauce.usersLiked.includes(userId)){  
         Sauce.updateOne(
           {_id: req.params.id},
@@ -125,7 +118,9 @@ exports.ctrlLikeDislike = (req, res, next) => {
         .then(() => res.status(200).json({ message: "Like/Dislike annulé !"}))
         .catch(error => res.status(400).json({ error }));
       
-      }else if(sauce.usersDisliked.includes(userId)){
+      }
+      //Si l'user a un dislike, et il souhaite retirerson dislike, on l'enlève du tableau userdisllsiked
+      else if(sauce.usersDisliked.includes(userId)){
         Sauce.updateOne(
           {_id: req.params.id},
           {$pull: {usersDisliked: userId}, $inc: {dislikes: -1}}
@@ -134,6 +129,7 @@ exports.ctrlLikeDislike = (req, res, next) => {
         .catch(error => res.status(400).json({ error }));
 
       }else {
+        // dans d'autres cas, on renvoie le message d'erreur
         throw 'Action non autorisée !'
       }
     }else {
